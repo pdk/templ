@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/pdk/qkjson/parser"
+	"github.com/pdk/templ/functions"
 )
 
 var (
@@ -106,7 +107,14 @@ func readTemplate(inFile string) *template.Template {
 		log.Fatalf("cannot read input %s: %s", inFile, err)
 	}
 
-	templ, err := template.New("templ").Parse(string(inputBytes))
+	fMap := make(template.FuncMap)
+	fMap["Prefix"] = functions.Prefix
+	fMap["Postfix"] = functions.Postfix
+	fMap["Join"] = functions.Join
+	fMap["Now"] = functions.Now
+	fMap["PrePostJoin"] = functions.PrePostJoin
+
+	templ, err := template.New("templ").Funcs(fMap).Parse(string(inputBytes))
 	if err != nil {
 		log.Fatalf("cannot parse template %s: %s", inFile, err)
 	}

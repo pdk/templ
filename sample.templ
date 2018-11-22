@@ -3,3 +3,12 @@ Hi, my name is {{.name}}.
 A few of my favorite things are:
 {{range .favoriteThings}}
 * {{.}}{{end}}
+
+-- {{ Now }}
+
+{{ Prefix "world" "hello, " }}
+
+{{ range Postfix ( Prefix .favoriteThings "<" ) ">"  }}
+* {{.}}{{end}}
+
+{{ PrePostJoin .favoriteThings "((" "))" ", " }}
