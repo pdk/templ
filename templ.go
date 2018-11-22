@@ -4,40 +4,75 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"text/template"
+
+	"github.com/pdk/qkjson/parser"
 )
 
 var (
-	inFile   string
-	outFile  string
-	dataFile string
+	inFile     string
+	outFile    string
+	dataFile   string
+	removeJSON bool
 )
 
 func init() {
-	flag.StringVar(&inFile, "template", "", "name of file containing template")
-	flag.StringVar(&inFile, "t", "", "name of file containing template")
-	flag.StringVar(&outFile, "write", "", "output file name")
-	flag.StringVar(&outFile, "w", "", "output file name")
-	flag.StringVar(&dataFile, "data", "", "name of file containing data (json)")
-	flag.StringVar(&dataFile, "d", "", "name of file containing data (json)")
+	flag.StringVar(&inFile, "input", "", "name of file containing template")
+	flag.StringVar(&inFile, "i", "", "name of file containing template")
+	flag.StringVar(&outFile, "output", "", "name of file to write")
+	flag.StringVar(&outFile, "o", "", "name of file to write")
+	flag.StringVar(&dataFile, "json", "", "name of file containing json data")
+	flag.StringVar(&dataFile, "j", "", "name of file containing json data")
+	flag.BoolVar(&removeJSON, "rm", false, "remove the json file afterwards")
+	flag.BoolVar(&removeJSON, "r", false, "remove the json file afterwards")
 }
 
 func main() {
 	flag.Parse()
 
-	checkInvocation()
-
-	data := readData(dataFile)
+	data := readData(dataFile, flag.Args())
 
 	templ := readTemplate(inFile)
 
 	result := executeTemplate(templ, data)
 
 	writeResult(outFile, result)
+
+	if !removeJSON {
+		return
+	}
+
+	err := os.Remove(dataFile)
+	if err != nil {
+		log.Fatalf("cannot remove data file: %s", err)
+	}
+}
+
+func readData(dataFile string, args []string) interface{} {
+
+	if dataFile != "" && len(args) > 0 {
+		log.Fatalf("cannot use data from file and from command line simultaneously")
+	}
+
+	if dataFile == "" {
+		return parser.ParseArgs(args)
+	}
+
+	dataBytes, err := ioutil.ReadFile(dataFile)
+	if err != nil {
+		log.Fatalf("cannot read datafile: %s", err)
+	}
+
+	var data interface{}
+	err = json.Unmarshal(dataBytes, &data)
+	if err != nil {
+		log.Fatalf("cannot parse data from %s: %s", dataFile, err)
+	}
+
+	return data
 }
 
 func writeResult(outFile string, result []byte) {
@@ -55,30 +90,6 @@ func writeResult(outFile string, result []byte) {
 	if err != nil {
 		log.Fatalf("cannot write result %s: %s", outFile, err)
 	}
-}
-
-func checkInvocation() {
-	if dataFile == "" {
-		flag.Usage()
-		fmt.Fprintf(flag.CommandLine.Output(), "-d/-data required")
-		os.Exit(1)
-	}
-}
-
-func readData(dataFile string) interface{} {
-
-	dataBytes, err := ioutil.ReadFile(dataFile)
-	if err != nil {
-		log.Fatalf("cannot read datafile: %s", err)
-	}
-
-	var data interface{}
-	err = json.Unmarshal(dataBytes, &data)
-	if err != nil {
-		log.Fatalf("cannot parse data from %s: %s", dataFile, err)
-	}
-
-	return data
 }
 
 func readTemplate(inFile string) *template.Template {
