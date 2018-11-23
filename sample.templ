@@ -4,11 +4,13 @@ A few of my favorite things are:
 {{range .favoriteThings}}
 * {{.}}{{end}}
 
--- {{ Now }}
+Now: {{ Now }}
 
-{{ Prefix "world" "hello, " }}
+Prefix: {{ Prefix "world" "hello, " }}
 
-{{ range Postfix ( Prefix .favoriteThings "<" ) ">"  }}
+Prefix + Postfix: {{ range Postfix ( Prefix .favoriteThings "<" ) ">"  }}
 * {{.}}{{end}}
 
-{{ PrePostJoin .favoriteThings "((" "))" ", " }}
+PrePostJoin: {{ PrePostJoin .favoriteThings "((" "))" ", " }}
+
+Join: {{ Join .favoriteThings ", " }}

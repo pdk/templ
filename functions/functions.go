@@ -87,9 +87,21 @@ func Postfix(data interface{}, postfix string) interface{} {
 }
 
 // Join joins a list of strings with a joiner.
-func Join(data []string, joiner string) string {
+func Join(data []interface{}, joiner string) string {
 
-	return strings.Join(data, joiner)
+	n := []string{}
+	for _, i := range data {
+		switch s := i.(type) {
+		case string:
+			n = append(n, s)
+		case Stringer:
+			n = append(n, s.String())
+		default:
+			log.Fatalf("cannot apply Join to %s", s)
+		}
+	}
+
+	return strings.Join(n, joiner)
 }
 
 // PrePostJoin will prefix and postfix each item, then join with joiner.
