@@ -1,0 +1,11 @@
+{{- define "page" -}}
+<html>
+    <head>
+        {{htmlSafe "<!-- default layout -->"}}
+        <title>{{block "pageTitle" .}}set pageTitle{{end}}</title>
+    </head>
+    <body>
+        {{template "pageContent"}}
+    </body>
+</html>
+{{- end -}}
